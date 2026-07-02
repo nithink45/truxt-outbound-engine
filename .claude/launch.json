@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "truxt-outbound",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "port": 3333,
+      "autoPort": true
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Truxt Outbound Engine</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Truxt <span>Outbound Engine</span></h1>
+    <div id="metrics" class="metrics"></div>
+  </header>
+
+  <main>
+    <!-- 1. Start a run -->
+    <section class="card">
+      <h2>1 · Discover &amp; score</h2>
+      <div class="row">
+        <input id="query" placeholder='Discovery query, e.g. "mid-market fintechs publicly using Cursor or Copilot"' />
+        <span class="or">or</span>
+        <input id="batch" placeholder="Batch: comma-separated company names" />
+        <button id="startRun" class="primary">Start run</button>
+      </div>
+      <div id="runStatus" class="muted"></div>
+    </section>
+
+    <!-- 2. Scored table -->
+    <section class="card">
+      <h2>2 · Scored companies <span class="muted" id="runLabel"></span></h2>
+      <div class="row">
+        <select id="runPicker"></select>
+        <button id="researchBtn">Research checked (Stages 3–4)</button>
+        <button id="draftBtn">Draft checked (Stages 5–6)</button>
+        <button id="refreshBtn" class="ghost">Refresh</button>
+      </div>
+      <table id="companyTable">
+        <thead>
+          <tr><th></th><th>Company</th><th>Score</th><th>Route</th><th>Bucket</th><th>Offering</th><th>Mechanism</th><th>Reasoning</th><th>Stage</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- 3. Review & approve -->
+    <section class="card">
+      <h2>3 · Review &amp; approve <span class="muted">(nothing sends without your click)</span></h2>
+      <div class="row">
+        <button id="followupBtn" class="ghost">Check follow-up triggers (Stage 8)</button>
+      </div>
+      <div id="drafts"></div>
+    </section>
+
+    <!-- 4. Sales assistant -->
+    <section class="card">
+      <h2>4 · Sales assistant</h2>
+      <div class="row">
+        <select id="assistantCompany"><option value="">(no account context)</option></select>
+      </div>
+      <div class="row">
+        <input id="assistantQ" placeholder='e.g. How do I answer "we already have a DORA dashboard"?' />
+        <button id="askBtn" class="primary">Ask</button>
+      </div>
+      <pre id="assistantA" class="answer"></pre>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
