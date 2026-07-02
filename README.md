@@ -6,28 +6,48 @@ identifies the decision-maker, drafts personalized outreach with line-by-line ra
 and presents everything in a review dashboard. **A human approves every send — including
 follow-ups. Nothing sends automatically.**
 
-## Quick start
+## Setup
+
+Requires **Node 20+** (for native `fetch` and `--env-file`).
 
 ```sh
+git clone https://github.com/nithink45/truxt-outbound-engine.git
+cd truxt-outbound-engine
 npm install
-export ANTHROPIC_API_KEY=sk-ant-...   # or `ant auth login`
-npm start                              # dashboard at http://localhost:3333
+cp .env.example .env          # then edit .env (see below)
+npm start                     # dashboard at http://localhost:3333
 ```
 
-Optional: copy `.env.example` and fill in Slack / Instantly / HubSpot keys. Without them,
-approved sends are written to `data/outbox/` (dry-run) so you can test end to end.
+**The only required key** is `ANTHROPIC_API_KEY` (in `.env`, or `export` it). Everything else
+degrades gracefully:
+
+| Key | Enables | Without it |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | all reasoning stages (Opus 4.8) | **nothing runs** |
+| `APOLLO_API_KEY` | real decision-makers + verified emails (Stage 4) | LLM guesses the contact |
+| `INSTANTLY_API_KEY` | real email send | approved sends written to `data/outbox/` (dry-run) |
+| `HUBSPOT_TOKEN` | CRM logging | skipped |
+| `SLACK_WEBHOOK_URL` | Priority-lead + send alerts | skipped |
+
+So a full end-to-end test needs just **one Anthropic key**. To swap the model backend, set
+`LLM_PROVIDER=anthropic|gemini|openrouter` (see `.env.example`).
 
 ## The pipeline
 
 | Stage | What | Where |
 |---|---|---|
-| 1 | ICP signal discovery (web search, source URLs per claim) | `src/stages/discovery.js` |
+| 1 | ICP signal discovery (native web search, source URLs per claim) | `src/stages/discovery.js` |
 | 2 | Bucket + offering/mechanism match + deterministic fit score | `src/stages/bucketing.js` |
 | 3 | Deep account research (blog, press, jobs, GitHub, exec posts) | `src/stages/research.js` |
-| 4 | Decision-maker identification (3 ranked options if uncertain) | `src/stages/contacts.js` |
-| 5+6 | Email drafting (2–3 variants, founder voice) + line-by-line rationale | `src/stages/drafting.js` |
+| 3.5 | **Verify** — independently re-fetch each cited URL and claim-check it; drop unsupported | `src/stages/verify.js` |
+| 4 | Decision-maker ID — real people via Apollo, LLM ranks by AI-spend authority | `src/stages/contacts.js` + `src/apollo.js` |
+| 5+6 | Drafting — 3 angle variants, then an LLM **judge** scores + picks the winner | `src/stages/drafting.js` |
 | 7 | Review-then-send gate (the dashboard) | `src/server.js` + `public/` |
 | 8 | Condition-based follow-ups → back through the approval gate | `src/stages/followup.js` |
+
+The model router (`src/llm.js`) sends each stage to a tier (frontier/fast) per provider, so
+the whole pipeline flips backends via `LLM_PROVIDER` with no stage-code changes. See
+[TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md) for the full design.
 
 Sales-assistant mode (call prep, product Q&A, objection handling) is in `src/assistant.js`
 and the dashboard's bottom panel; it retrieves from `product_knowledge_base.md`.
